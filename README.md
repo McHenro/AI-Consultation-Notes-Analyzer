@@ -130,5 +130,3 @@ This project demonstrates how a backend engineer can:
 - Handle unreliable external APIs
 - Build AI-powered services that scale
 
-This is not a chatbot.
-It is an AI-enabled backend system.
