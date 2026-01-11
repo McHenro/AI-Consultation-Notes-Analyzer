@@ -14,6 +14,7 @@ class NoteAnalysis(models.Model):
     ]
 
     raw_text = models.TextField(help_text="Original notes submitted by the user")
+    file = models.FileField(upload_to="uploads/", null=True, blank=True)
 
     summary = models.TextField(blank=True)
     key_points = models.JSONField(null=True, blank=True)
