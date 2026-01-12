@@ -15,3 +15,9 @@ class NoteAnalysisSerializer(serializers.ModelSerializer):
             "error",
             "created_at",
         )
+
+
+class UploadNoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NoteAnalysis
+        fields = ["id", "file"]
