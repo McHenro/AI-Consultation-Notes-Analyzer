@@ -8,6 +8,8 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework import status
 from .serializers import UploadNoteSerializer
 from .services import extract_text_from_file
+from django.views.generic import TemplateView
+
 
 
 class NoteAnalysisViewSet(ModelViewSet):
@@ -46,3 +48,7 @@ class UploadNoteView(APIView):
             {"id": note.id, "status": "processing"},
             status=status.HTTP_201_CREATED,
         )
+
+
+class IndexView(TemplateView):
+    template_name = "core/index.html"

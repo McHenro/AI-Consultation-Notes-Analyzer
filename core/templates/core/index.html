@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AI Notes Analyzer</title>
+</head>
+<body>
+  <h2>Upload Medical Note</h2>
+
+  <input type="file" id="file" />
+  <button onclick="upload()">Analyze</button>
+
+  <pre id="result"></pre>
+
+<script>
+async function upload() {
+  const file = document.getElementById("file").files[0];
+  const form = new FormData();
+  form.append("file", file);
+
+  const res = await fetch("http://localhost:8000/api/upload/", {
+    method: "POST",
+    body: form
+  });
+
+  const data = await res.json();
+  poll(data.id);
+}
+
+async function poll(id) {
+  const interval = setInterval(async () => {
+    const res = await fetch(`http://localhost:8000/api/analyses/${id}/`);
+    const data = await res.json();
+
+    if (data.status === "completed") {
+      clearInterval(interval);
+      document.getElementById("result").textContent = JSON.stringify(data, null, 2);
+    }
+  }, 2000);
+}
+</script>
+</body>
+</html>
