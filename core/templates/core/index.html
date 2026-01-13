@@ -46,6 +46,10 @@
   </style>
 </head>
 <body>
+
+  <!-- Django injects CSRF here -->
+  <input type="hidden" id="csrf-token" value="{{ csrf_token }}">
+
   <h2>AI Notes Analyzer</h2>
 
   <div class="section">
@@ -77,45 +81,54 @@
       <ul id="next-actions"></ul>
     </div>
 
-    <button id="refresh-btn" onclick="refreshAnalysis()">Refresh</button>
+    <button onclick="refreshAnalysis()">Refresh</button>
   </div>
 
   <script>
     let currentAnalysisId = null;
+    const csrfToken = document.getElementById("csrf-token").value;
 
     async function upload() {
       const fileInput = document.getElementById("file");
+
       if (!fileInput.files.length) {
-        alert("Please select a file first");
+        alert("Please select a file");
         return;
       }
 
-      const file = fileInput.files[0];
       const form = new FormData();
-      form.append("file", file);
+      form.append("file", fileInput.files[0]);
 
-      document.getElementById("status").textContent = "Uploading file...";
-      document.getElementById("result-container").style.display = "none";
+      document.getElementById("status").textContent = "Uploading...";
 
       try {
-        const res = await fetch("http://localhost:8000/api/upload/", {
+        const res = await fetch("/api/upload/", {
           method: "POST",
+          headers: {
+            "X-CSRFToken": csrfToken
+          },
           body: form
         });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text);
+        }
 
         const data = await res.json();
         currentAnalysisId = data.id;
         document.getElementById("status").textContent = "Processing note...";
         poll(data.id);
-      } catch (error) {
-        document.getElementById("status").textContent = "Error: " + error.message;
+
+      } catch (err) {
+        document.getElementById("status").textContent = "Upload failed: " + err.message;
       }
     }
 
-    async function poll(id) {
+    function poll(id) {
       const interval = setInterval(async () => {
         try {
-          const res = await fetch(`http://localhost:8000/api/analyses/${id}/`);
+          const res = await fetch(`/api/analyses/${id}/`);
           const data = await res.json();
 
           if (data.status === "completed") {
@@ -124,83 +137,57 @@
             document.getElementById("status").textContent = "Analysis completed!";
           } else if (data.status === "failed") {
             clearInterval(interval);
-            document.getElementById("status").textContent = "Analysis failed: " + data.error;
+            document.getElementById("status").textContent = "Failed: " + data.error;
           } else {
-            document.getElementById("status").textContent = "Processing note... Status: " + data.status;
+            document.getElementById("status").textContent = "Processing...";
           }
-        } catch (error) {
-          clearInterval(interval);
-          document.getElementById("status").textContent = "Error fetching analysis: " + error.message;
+        } catch (err) {
+          document.getElementById("status").textContent = "Waiting for server...";
         }
-      }, 2000);
+      }, 5000);
     }
 
     function displayResults(data) {
-      // Display summary
       document.getElementById("summary").textContent = data.summary;
 
-      // Display key points
-      const keyPointsList = document.getElementById("key-points");
-      keyPointsList.innerHTML = "";
-      if (data.key_points && Array.isArray(data.key_points)) {
-        data.key_points.forEach(point => {
-          const li = document.createElement("li");
-          li.className = "list-item";
-          li.textContent = point;
-          keyPointsList.appendChild(li);
-        });
-      }
+      fillList("key-points", data.key_points);
+      fillList("missing-info", data.missing_info);
+      fillList("next-actions", data.next_actions);
 
-      // Display missing information
-      const missingInfoList = document.getElementById("missing-info");
-      missingInfoList.innerHTML = "";
-      if (data.missing_info && Array.isArray(data.missing_info)) {
-        data.missing_info.forEach(info => {
-          const li = document.createElement("li");
-          li.className = "list-item";
-          li.textContent = info;
-          missingInfoList.appendChild(li);
-        });
-      }
-
-      // Display next actions
-      const nextActionsList = document.getElementById("next-actions");
-      nextActionsList.innerHTML = "";
-      if (data.next_actions && Array.isArray(data.next_actions)) {
-        data.next_actions.forEach(action => {
-          const li = document.createElement("li");
-          li.className = "list-item";
-          li.textContent = action;
-          nextActionsList.appendChild(li);
-        });
-      }
-
-      // Show the results container
       document.getElementById("result-container").style.display = "block";
     }
 
-    async function refreshAnalysis() {
-      if (!currentAnalysisId) {
-        document.getElementById("status").textContent = "No analysis to refresh";
-        return;
-      }
+    function fillList(id, items) {
+      const ul = document.getElementById(id);
+      ul.innerHTML = "";
+      if (!items) return;
+      items.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        ul.appendChild(li);
+      });
+    }
 
-      document.getElementById("status").textContent = "Refreshing analysis...";
+    async function refreshAnalysis() {
+      if (!currentAnalysisId) return;
+
+      document.getElementById("status").textContent = "Refreshing...";
 
       try {
-        const res = await fetch(`http://localhost:8000/api/analyses/${currentAnalysisId}/`);
+        const res = await fetch(`/api/analyses/${currentAnalysisId}/`);
         const data = await res.json();
 
         if (data.status === "completed") {
           displayResults(data);
-          document.getElementById("status").textContent = "Analysis refreshed!";
+          document.getElementById("status").textContent = "Up to date";
         } else {
-          document.getElementById("status").textContent = "Analysis status: " + data.status;
+          document.getElementById("status").textContent = "Still processing...";
         }
-      } catch (error) {
-        document.getElementById("status").textContent = "Error refreshing analysis: " + error.message;
+      } catch {
+        document.getElementById("status").textContent = "Server unavailable";
       }
     }
   </script>
+
 </body>
 </html>

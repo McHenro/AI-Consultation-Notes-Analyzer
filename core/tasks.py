@@ -1,6 +1,7 @@
 import json
 import logging
 from celery import shared_task
+from celery.exceptions import SoftTimeLimitExceeded
 from openai import OpenAI
 from .models import NoteAnalysis
 from .prompts import ANALYSIS_PROMPT
@@ -8,8 +9,8 @@ from .prompts import ANALYSIS_PROMPT
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# Initialize OpenAI client
-client = OpenAI()
+# Initialize OpenAI client with increased timeout
+client = OpenAI(timeout=180.0)  # 3 minutes timeout for larger files
 
 
 def extract_content_from_response(response):
@@ -122,7 +123,7 @@ def parse_json_content(content):
 @shared_task(
     autoretry_for=(Exception,),
     retry_backoff=10,
-    retry_kwargs={"max_retries": 3},
+    retry_kwargs={"max_retries": 5},
 )
 def analyze_note_task(analysis_id):
     """
@@ -173,6 +174,13 @@ def analyze_note_task(analysis_id):
         analysis.status = "failed"
         analysis.error = "Invalid JSON returned from AI"
         analysis.save()
+
+    except SoftTimeLimitExceeded:
+        logger.error(f"Task exceeded time limit for note {analysis_id}")
+        analysis.status = "failed"
+        analysis.error = "Analysis took too long to complete. The file might be too large or complex."
+        analysis.save()
+        # Don't raise the exception to prevent retries for timeout issues
 
     except Exception as e:
         logger.error(f"Error analyzing note {analysis_id}: {str(e)}")
