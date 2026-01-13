@@ -9,6 +9,8 @@ from rest_framework import status
 from .serializers import UploadNoteSerializer
 from .services import extract_text_from_file
 from django.views.generic import TemplateView
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 
 
@@ -21,6 +23,7 @@ class NoteAnalysisViewSet(ModelViewSet):
         analyze_note_task.delay(analysis.id)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class UploadNoteView(APIView):
     parser_classes = [MultiPartParser]
 
@@ -41,6 +44,7 @@ class UploadNoteView(APIView):
         note.raw_text = extracted
         note.status = "pending"
         note.save()
+        breakpoint()
 
         analyze_note_task.delay(note.id)
 

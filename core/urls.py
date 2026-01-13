@@ -8,7 +8,7 @@ router.register("analyses", NoteAnalysisViewSet, basename="analysis")
 # urlpatterns = router.urls
 
 urlpatterns = [
-    path("index/", IndexView.as_view(), name="index"),
+    path("", IndexView.as_view(), name="index"),
     path("api/upload/", UploadNoteView.as_view(), name="upload-note"),
     path("api/", include(router.urls)),
 ]

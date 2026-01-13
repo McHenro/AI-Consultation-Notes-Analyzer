@@ -1,4 +1,11 @@
 from django.db import models
+import uuid
+import os
+
+# Rename files on upload to meet the chars max for the filename
+def upload_to(instance, filename):
+    ext = filename.split(".")[-1]
+    return f"notes/{uuid.uuid4().hex}.{ext}"
 
 class NoteAnalysis(models.Model):
     STATUS_PENDING = "pending"
@@ -13,8 +20,8 @@ class NoteAnalysis(models.Model):
         (STATUS_FAILED, "Failed"),
     ]
 
-    raw_text = models.TextField(help_text="Original notes submitted by the user")
-    file = models.FileField(upload_to="uploads/", null=True, blank=True)
+    raw_text = models.TextField(blank=True, help_text="Original notes submitted by the user")
+    file = models.FileField(upload_to=upload_to, null=True, blank=True, max_length=255)
 
     summary = models.TextField(blank=True)
     key_points = models.JSONField(null=True, blank=True)
