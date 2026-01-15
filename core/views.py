@@ -44,7 +44,6 @@ class UploadNoteView(APIView):
         note.raw_text = extracted
         note.status = "pending"
         note.save()
-        breakpoint()
 
         analyze_note_task.delay(note.id)
 
