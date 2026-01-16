@@ -32,7 +32,8 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = True
 
 ALLOWED_HOSTS = [
-'ai-consultation-notes-analyzer-production.up.railway.app'
+    'ai-consultation-notes-analyzer-production.up.railway.app',
+    'web-production-9def.up.railway.app'
 ]
 
 
