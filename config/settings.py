@@ -150,11 +150,13 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REDIS_URL = config("REDIS_URL")
-if not REDIS_URL:
-    raise RuntimeError("REDIS_URL is not set")
-
-CELERY_BROKER_URL = REDIS_URL
-CELERY_RESULT_BACKEND = REDIS_URL
+if REDIS_URL:
+    CELERY_BROKER_URL = REDIS_URL
+    CELERY_RESULT_BACKEND = REDIS_URL
+else:
+    # Explicitly prevent silent localhost usage
+    CELERY_BROKER_URL = None
+    CELERY_RESULT_BACKEND = None
 
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
