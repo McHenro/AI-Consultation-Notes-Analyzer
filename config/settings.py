@@ -11,8 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-from dotenv import load_dotenv
-load_dotenv()
+from decouple import config
 import dj_database_url
 from pathlib import Path
 import os
@@ -26,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -86,7 +85,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-if os.getenv("DATABASE_URL"):
+if config("DATABASE_URL"):
     # Railway (Postgres)
     import dj_database_url
     DATABASES = {
@@ -142,7 +141,9 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
+REDIS_URL = config("REDIS_URL")
+if not REDIS_URL:
+    raise RuntimeError("REDIS_URL is not set")
 
 CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
