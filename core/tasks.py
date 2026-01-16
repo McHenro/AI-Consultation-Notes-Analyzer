@@ -5,12 +5,19 @@ from celery.exceptions import SoftTimeLimitExceeded
 from openai import OpenAI
 from .models import NoteAnalysis
 from .prompts import ANALYSIS_PROMPT
+from django.conf import settings
 
 # Set up logging
 logger = logging.getLogger(__name__)
 
 # Initialize OpenAI client with increased timeout
-client = OpenAI(timeout=180.0)  # 3 minutes timeout for larger files
+if not settings.OPENAI_API_KEY:
+    raise RuntimeError("OPENAI_API_KEY is not configured")
+
+client = OpenAI(
+    api_key=settings.OPENAI_API_KEY,
+    timeout=180.0
+)
 
 
 def extract_content_from_response(response):
