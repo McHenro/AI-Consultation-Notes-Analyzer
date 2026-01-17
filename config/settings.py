@@ -154,10 +154,14 @@ print(f"DEBUG: Celery is attempting to connect to: {REDIS_URL}")
 if REDIS_URL:
     CELERY_BROKER_URL = REDIS_URL
     CELERY_RESULT_BACKEND = REDIS_URL
+    # Optional: Add these to be extra sure
+    BROKER_URL = REDIS_URL
 else:
     # Explicitly prevent silent localhost usage
     CELERY_BROKER_URL = None
     CELERY_RESULT_BACKEND = None
+    # Optional: Add these to be extra sure
+    BROKER_URL = None
 
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
