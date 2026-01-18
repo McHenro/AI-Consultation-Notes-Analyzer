@@ -147,6 +147,7 @@ def analyze_note_task(analysis_id):
         analysis_id (int): The ID of the NoteAnalysis record to process
     """
     # Get the analysis record
+    logger.warning(f"CELERY TASK STARTED for analysis {analysis_id}")
     analysis = NoteAnalysis.objects.get(id=analysis_id)
     analysis.status = "processing"
     analysis.save(update_fields=["status"])
