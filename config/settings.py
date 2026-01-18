@@ -23,6 +23,7 @@ from decouple import config, UndefinedValueError
 
 try:
     OPENAI_API_KEY = config("OPENAI_API_KEY")
+    print("DEBUG: OpenAI API key found in environment variables", OPENAI_API_KEY)
 except UndefinedValueError:
     OPENAI_API_KEY = None
 
@@ -38,7 +39,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     'ai-consultation-notes-analyzer-production.up.railway.app',
-    'web-production-9def.up.railway.app'
+    'web-production-9def.up.railway.app',
+    "127.0.0.1",
+    "localhost",
 ]
 
 
