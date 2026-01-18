@@ -12,15 +12,18 @@ from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 
 class NoteAnalysisViewSet(ModelViewSet):
     queryset = NoteAnalysis.objects.all().order_by("-created_at")
     serializer_class = NoteAnalysisSerializer
 
-    def perform_create(self, serializer):
-        analysis = serializer.save()
-        analyze_note_task.delay(analysis.id)
+    # def perform_create(self, serializer):
+    #     analysis = serializer.save()
+    #     analyze_note_task.delay(analysis.id)
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -44,6 +47,8 @@ class UploadNoteView(APIView):
         note.raw_text = extracted
         note.status = "pending"
         note.save()
+
+        logger.warning(" Enqueuing Celery task for note_id=%s", note.id)
 
         analyze_note_task.delay(note.id)
 
