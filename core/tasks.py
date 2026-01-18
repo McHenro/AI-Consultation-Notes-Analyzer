@@ -12,12 +12,12 @@ logger = logging.getLogger(__name__)
 
 # Initialize OpenAI client with increased timeout
 if not settings.OPENAI_API_KEY:
-    raise RuntimeError("OPENAI_API_KEY is not configured")
+    logger.error("OPENAI_API_KEY is not configured")
 
-client = OpenAI(
-    api_key=settings.OPENAI_API_KEY,
-    timeout=180.0
-)
+# client = OpenAI(
+#     api_key=settings.OPENAI_API_KEY,
+#     timeout=180.0
+# )
 
 
 def extract_content_from_response(response):
@@ -152,6 +152,13 @@ def analyze_note_task(analysis_id):
     analysis.save(update_fields=["status"])
 
     try:
+        if not settings.OPENAI_API_KEY:
+            raise RuntimeError("OPENAI_API_KEY is missing in worker environment")
+
+        client = OpenAI(
+            api_key=settings.OPENAI_API_KEY,
+            timeout=180.0
+        )
         # Call OpenAI API
         logger.info(f"Sending note {analysis_id} to OpenAI for analysis")
         response = client.responses.create(

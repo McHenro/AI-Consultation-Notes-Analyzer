@@ -23,7 +23,7 @@ from decouple import config, UndefinedValueError
 
 try:
     OPENAI_API_KEY = config("OPENAI_API_KEY")
-    print("DEBUG: OpenAI API key found in environment variables", OPENAI_API_KEY)
+    # print("DEBUG: OpenAI API key found in environment variables", OPENAI_API_KEY)
 except UndefinedValueError:
     OPENAI_API_KEY = None
 
@@ -152,9 +152,9 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# REDIS_URL = config("REDIS_URL")
-REDIS_URL = os.environ.get('REDIS_URL')
-print(f"DEBUG: Celery is attempting to connect to: {REDIS_URL}")
+REDIS_URL = config("REDIS_URL")
+# REDIS_URL = os.environ.get('REDIS_URL')
+# print(f"DEBUG: Celery is attempting to connect to: {REDIS_URL}")
 if REDIS_URL:
     CELERY_BROKER_URL = REDIS_URL
     CELERY_RESULT_BACKEND = REDIS_URL
